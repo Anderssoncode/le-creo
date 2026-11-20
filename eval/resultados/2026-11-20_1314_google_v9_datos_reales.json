@@ -1,0 +1,157 @@
+{
+  "fecha": "2026-11-20T13:14:38",
+  "etiqueta": "v9_datos_reales",
+  "proveedor": "google",
+  "modelo": "gemini-3.5-flash-lite",
+  "archivo_casos": "casos_reales.jsonl",
+  "casos": 2,
+  "repeticiones": 2,
+  "descripciones": {
+    "buscar_numero": "Úsala con cada número de teléfono o celular que aparezca escrito en el mensaje, aunque venga con espacios o sin +57 (ej. '300 000 0007'), o si la persona dice desde qué número le escribieron. Consulta cuántas veces lo han reportado. No la uses si el mensaje no trae ningún teléfono, ni con montos de dinero, códigos de verificación, números de guía, de cuenta, de tarjeta o de cédula.",
+    "canal_oficial": "Úsala siempre que el mensaje diga venir de una entidad o hable en su nombre ('Bancolombia le informa', 'NEQUI:', 'Servientrega: su paquete'): un banco, una billetera, una transportadora, la DIAN o la Policía, sea el mensaje sospechoso o no. Devuelve cómo contacta de verdad esa entidad y qué nunca pide. No la uses si la entidad solo aparece como el medio donde piden la plata ('mándame al Nequi'), ni si el mensaje no menciona ninguna entidad.",
+    "revisar_enlace": "Úsala con cada enlace o dirección web que aparezca escrito en el mensaje, aunque no empiece por http o www (ej. 'bit.ly/abc', 'pagos-dian.co/pagar'). Revisa solo el texto: si imita un dominio oficial, si es un acortador o si tiene caracteres engañosos. No abre el enlace ni descarga nada. No la uses si el mensaje no trae ningún enlace escrito (por ejemplo, si solo dice 'haz clic aquí' o 'te envío el link'), ni con correos electrónicos."
+  },
+  "cifras": {
+    "tasa_exito": {
+      "aciertos": 4,
+      "total": 4,
+      "porcentaje": 100.0
+    },
+    "costo_por_tarea": {
+      "promedio_usd": 0.002063,
+      "total_usd": 0.008252,
+      "costo_real_usd": 0.0,
+      "precio_usado": {
+        "entrada_usd_por_millon": 0.3,
+        "salida_usd_por_millon": 2.5,
+        "nota": "Precio estándar (capa paga). La salida incluye los tokens de razonamiento.",
+        "fuente": "https://ai.google.dev/gemini-api/docs/pricing",
+        "consultado": "2026-10-30"
+      }
+    },
+    "latencia": {
+      "mediana_ms": 3208,
+      "min_ms": 2065,
+      "max_ms": 10433
+    },
+    "recuperacion": {
+      "cumplidas": 0,
+      "esperadas": 0,
+      "porcentaje": 0.0
+    },
+    "herramientas": {
+      "llamadas_por_caso": 1.0,
+      "de_mas": 0,
+      "de_mas_porcentaje": 0.0
+    },
+    "tokens_por_caso": 5078,
+    "casos_reales": {
+      "estafas": 0,
+      "estafas_con_alerta": 0,
+      "estafas_en_rojo": 0,
+      "estafas_en_verde": 0,
+      "legitimos": 4,
+      "legitimos_en_verde": 2,
+      "legitimos_en_amarillo": 2,
+      "legitimos_en_rojo": 0
+    }
+  },
+  "registros": [
+    {
+      "id": "r01",
+      "esperado": "legitimo",
+      "obtenido": "verde",
+      "acierto": true,
+      "error": null,
+      "latencia_ms": 3435,
+      "tokens_in": 4839,
+      "tokens_out": 230,
+      "iteraciones": 2,
+      "herramientas": [
+        {
+          "nombre": "revisar_enlace",
+          "parametros": {
+            "url": "go.wu.com/e/AbCdEf123"
+          }
+        }
+      ],
+      "recuperacion": [],
+      "llamadas_de_mas": [],
+      "explicacion": "Inventan que te llegó plata para que hagas clic en el enlace.",
+      "que_hacer": "No hagas clic en enlaces de mensajes que no esperabas.",
+      "repeticion": 1
+    },
+    {
+      "id": "r02",
+      "esperado": "legitimo",
+      "obtenido": "amarillo",
+      "acierto": true,
+      "error": null,
+      "latencia_ms": 2065,
+      "tokens_in": 4826,
+      "tokens_out": 242,
+      "iteraciones": 2,
+      "herramientas": [
+        {
+          "nombre": "revisar_enlace",
+          "parametros": {
+            "url": "https://oia.didiglobal.com/dlp/AbCd12"
+          }
+        }
+      ],
+      "recuperacion": [],
+      "llamadas_de_mas": [],
+      "explicacion": "Te avisan de una deuda pequeña para que entres al enlace y pongches tus datos de pago.",
+      "que_hacer": "Revisa tu aplicación oficial de DiDi para confirmar si tienes algún saldo pendiente.",
+      "repeticion": 1
+    },
+    {
+      "id": "r01",
+      "esperado": "legitimo",
+      "obtenido": "verde",
+      "acierto": true,
+      "error": null,
+      "latencia_ms": 2982,
+      "tokens_in": 4839,
+      "tokens_out": 270,
+      "iteraciones": 2,
+      "herramientas": [
+        {
+          "nombre": "revisar_enlace",
+          "parametros": {
+            "url": "go.wu.com/e/AbCdEf123"
+          }
+        }
+      ],
+      "recuperacion": [],
+      "llamadas_de_mas": [],
+      "explicacion": "Inventan una transferencia sorpresa para que entres al enlace y caigas en una página falsa.",
+      "que_hacer": "No hagas clic en el enlace. Si esperas plata, revisa directamente en la aplicación oficial.",
+      "repeticion": 2
+    },
+    {
+      "id": "r02",
+      "esperado": "legitimo",
+      "obtenido": "amarillo",
+      "acierto": true,
+      "error": null,
+      "latencia_ms": 10433,
+      "tokens_in": 4826,
+      "tokens_out": 239,
+      "iteraciones": 2,
+      "herramientas": [
+        {
+          "nombre": "revisar_enlace",
+          "parametros": {
+            "url": "https://oia.didiglobal.com/dlp/AbCd12"
+          }
+        }
+      ],
+      "recuperacion": [],
+      "llamadas_de_mas": [],
+      "explicacion": "Te avisan de una pequeña deuda para que hagas clic y pagues sin revisar.",
+      "que_hacer": "Entra a tu aplicación de DiDi para verificar si tienes algún saldo pendiente real.",
+      "repeticion": 2
+    }
+  ]
+}

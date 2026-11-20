@@ -220,4 +220,16 @@ Detalle: `decisiones/publico_y_canal.md`.
 3. **Texto del amarillo:** "Me hizo dudar: te piden datos personales, como tu cédula o tu dirección".
 4. **Prompt:** se aclaró que presentar el documento en persona (retirar un giro en un punto de pago) no es pedir datos personales, para no mandar a 🟡 avisos reales como c13.
 
-**Pendiente:** correr de nuevo la suite (`eval\correr_suite.py`) con el prompt nuevo, sobre todo c13 y r01.
+**Medición (v9_datos, 3 repeticiones, `gemini-3.5-flash-lite`):** 39/42, recuperación 45/45. Dos fallos fueron errores 500 de Google. El tercero fue c14 en 🟢 (ver abajo). Casos reales: 4/4, con r01 siempre en 🟢.
+
+## Un cobro por enlace oficial siempre pide `transferencia` (2026-11-20)
+
+**Qué pasaba:** c14 (tarifa de DiDi con enlace oficial) salió 🟢 en 1 de 3 corridas. Esa vez el modelo no puso `transferencia` en `pide` ("puedes pagar aquí" le pareció solo un clic) y la regla del enlace oficial lo dejó pasar.
+
+**Qué cambió:** una línea en el prompt: `transferencia` va en `pide` siempre que el mensaje cobre o pida pagar, aunque el monto sea pequeño o el pago sea por un enlace. Recibir dinero (un giro que se retira) no cuenta.
+
+**Medición:**
+- c13 y c14 × 6 (v10_cobros_c13_c14): **12/12**. c14 siempre en 🟡 y el giro real c13 siempre en 🟢.
+- Suite completa × 3 (v10_cobros): 34/42, pero corrió mientras Google estaba inestable (mediana 7,4 s contra 3 s en la corrida anterior): 3 errores 500 y 4 cortes por el límite de 20 s. Sin contar esos 7, **34/35**. El único fallo de lógica fue c09 en 🟡: el modelo no llamó `revisar_enlace` (1,1 s, sin herramientas) y la regla "sin certeza no hay verde" lo dejó en amarillo.
+
+**Pendiente:** repetir la suite completa cuando Google esté estable, para tener una cifra limpia.
