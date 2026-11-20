@@ -27,6 +27,12 @@ def _digitos(texto: str) -> str:
     return "".join(c for c in texto if c.isdigit())
 
 
+def telefonos_sin_verificar(contrato: ContratoSalida, canales: list[dict]) -> list[str]:
+    """Teléfonos del mensaje que no son líneas de los canales oficiales encontrados."""
+    oficiales = " ".join(_digitos(c.get("canales", "")) for c in canales)
+    return [t for t in contrato.telefonos if len(_digitos(t)) >= 7 and _digitos(t)[-10:] not in oficiales]
+
+
 def calcular_semaforo(
     contrato: ContratoSalida,
     herramientas: list[LlamadaHerramienta],
@@ -44,6 +50,7 @@ def calcular_semaforo(
     # ── Señales de las herramientas ───────────────────────────────────────────
 
     canal: dict | None = None
+    canales_encontrados: list[dict] = []
     enlaces_no_oficiales: list[str] = []
     enlaces_oficiales = 0
     for h in herramientas:
@@ -70,6 +77,7 @@ def calcular_semaforo(
         elif h.nombre == "canal_oficial":
             if r.get("encontrada"):
                 canal = r
+                canales_encontrados.append(r)
 
     # ── Señales del contrato ──────────────────────────────────────────────────
 
@@ -102,6 +110,12 @@ def calcular_semaforo(
     revisados = enlaces_oficiales + len(enlaces_no_oficiales)
     if len(contrato.enlaces) > revisados:
         senales_blandas.append(f"{len(contrato.enlaces) - revisados} enlace(s) sin revisar")
+
+    # Lo mismo con los teléfonos (S1, ataque A04): uno escrito en el mensaje que no es una línea
+    # oficial comprobada deja el mensaje en amarillo. No depende de que el modelo haya dicho qué
+    # entidad suplantan: una inyección puede convencerlo de no decirlo.
+    for tel in telefonos_sin_verificar(contrato, canales_encontrados):
+        senales_blandas.append(f"teléfono sin verificar: {tel}")
 
     # Tácticas fuertes
     tacticas_fuertes_detectadas = [

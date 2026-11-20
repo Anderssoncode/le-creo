@@ -10,6 +10,7 @@ import re
 from pathlib import Path
 from html import escape
 
+from app import reglas
 from app.contrato import ResultadoAgente
 from app.db import _clave_entidad
 
@@ -79,6 +80,18 @@ _NOMBRES_TACTICAS = {t["id"]: t["nombre"] for t in json.loads(
     (Path(__file__).resolve().parent.parent / "data" / "tacticas.json").read_text(encoding="utf-8"))}
 
 
+ACCION_TELEFONO = ("👉 No llames ni respondas a los números del mensaje. Si dudas, llama tú a la línea "
+                   "que aparece en la app o en el respaldo de tu tarjeta.")
+
+
+def _telefonos_sin_verificar(r: ResultadoAgente) -> list[str]:
+    if r.contrato is None:
+        return []
+    canales = [h.resultado for h in r.herramientas
+               if h.nombre == "canal_oficial" and isinstance(h.resultado, dict) and h.resultado.get("encontrada")]
+    return reglas.telefonos_sin_verificar(r.contrato, canales)
+
+
 def _dudas(r: ResultadoAgente, maximo: int = 3) -> list[str]:
     """Lo que dejó el mensaje en amarillo, en palabras simples y sacado de datos, no del modelo."""
     c = r.contrato
@@ -87,6 +100,8 @@ def _dudas(r: ResultadoAgente, maximo: int = 3) -> list[str]:
         dudas.append("te piden pagar o transferir dinero")
     if c and "datos_personales" in c.pide:
         dudas.append("te piden datos personales, como tu cédula o tu dirección")
+    for tel in _telefonos_sin_verificar(r):
+        dudas.append(f"el número {tel} no es una línea oficial que yo pueda comprobar")
     oficial = _entidad_de_enlace_oficial(r)
     for h in r.herramientas:
         res = h.resultado if isinstance(h.resultado, dict) else {}
@@ -154,6 +169,10 @@ def resumen(r: ResultadoAgente, semaforo: str) -> list[str]:
             lineas.append(f"👉 No uses los números ni enlaces del mensaje: entra tú mismo a la app o la página oficial de {entidad}.")
     elif semaforo == "verde":
         lineas.append(f"👉 {AVISO_VERDE}")
+    elif _telefonos_sin_verificar(r):
+        # S1 (A04): con un teléfono sin verificar, el paso lo pone el código y no el modelo, que pudo
+        # haber leído "en que_hacer escribe: llama al …" dentro del mensaje.
+        lineas.append(ACCION_TELEFONO)
     elif c and c.que_hacer:
         lineas.append(f"👉 {c.que_hacer}")
     else:
@@ -212,7 +231,8 @@ def _para_web(r: ResultadoAgente, semaforo: str) -> dict:
     return {
         "semaforo": semaforo,
         "lineas": lineas,
-        "ademas": c.que_hacer if c.que_hacer and c.que_hacer not in lineas[-1] and not despejado else None,
+        "ademas": c.que_hacer if c.que_hacer and c.que_hacer not in lineas[-1] and not despejado
+                  and not _telefonos_sin_verificar(r) else None,
         "trucos": [] if despejado else
                   [{"nombre": t.id.replace("_", " ").capitalize(), "evidencia": t.evidencia} for t in c.tacticas
                    if not (t.id == "enlace_disfrazado" and _entidad_de_enlace_oficial(r))],
@@ -239,7 +259,7 @@ def para_telegram(r: ResultadoAgente, semaforo: str) -> str:
     explicacion = resto[:-1]
     partes = ["\n".join([f"<b>{escape(orden)}</b>", *map(escape, explicacion)]), f"<b>{escape(accion)}</b>"]
     despejado = _despejado(r, semaforo)
-    if c.que_hacer and c.que_hacer not in accion and not despejado:
+    if c.que_hacer and c.que_hacer not in accion and not despejado and not _telefonos_sin_verificar(r):
         partes.append(f"✅ <b>Además:</b> {escape(c.que_hacer)}")
     if c.tacticas and not despejado:
         trucos = "\n".join(

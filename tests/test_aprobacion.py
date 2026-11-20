@@ -65,7 +65,12 @@ ROJO = ResultadoAgente(
     herramientas=[LlamadaHerramienta(nombre="buscar_numero", parametros={"numero": NUMERO}, latencia_ms=1,
                                      resultado={"numero": NUMERO, "reportes": 2, "peligroso": False})],
 )
-VERDE = ResultadoAgente(ok=True, contrato=ContratoSalida(telefonos=["300 000 0007"]))
+# Verde con un teléfono que sí es la línea oficial comprobada (un teléfono sin verificar sería amarillo).
+VERDE = ResultadoAgente(
+    ok=True, contrato=ContratoSalida(telefonos=["300 000 0007"]),
+    herramientas=[LlamadaHerramienta(nombre="canal_oficial", parametros={"entidad": "Ejemplo"}, latencia_ms=1,
+                                     resultado={"encontrada": True, "entidad": "Ejemplo", "canales": "línea 300 000 0007"})],
+)
 
 
 @pytest.fixture
@@ -192,7 +197,7 @@ PRUEBA = "+573000000099"
 def numero_limpio(requiere_db):
     from app import db
     yield db
-    with db.conexion() as conn:
+    with db.conexion_admin() as conn:   # preparar y limpiar datos de prueba es tarea del dueño
         conn.execute("DELETE FROM reportes_usuario WHERE numero = %s", (PRUEBA,))
         conn.execute("DELETE FROM numeros_reportados WHERE numero = %s", (PRUEBA,))
         conn.commit()
@@ -217,7 +222,7 @@ def test_tres_personas_distintas_lo_ponen_en_alerta(numero_limpio):
 def test_los_reportes_vencidos_no_cuentan(numero_limpio):
     db = numero_limpio
     from app import config
-    with db.conexion() as conn:
+    with db.conexion_admin() as conn:   # preparar y limpiar datos de prueba es tarea del dueño
         for persona in ("a", "b", "c"):
             conn.execute("INSERT INTO reportes_usuario (numero, reportante, fecha) "
                          "VALUES (%s, %s, CURRENT_DATE - %s::int)", (PRUEBA, persona, config.REPORTES_VIGENCIA_DIAS))
@@ -229,7 +234,7 @@ def test_los_reportes_vencidos_no_cuentan(numero_limpio):
 def test_las_filas_viejas_de_usuario_no_cuentan(numero_limpio):
     """Venían de clics repetibles por una sola persona: no se sabe cuántas personas eran."""
     db = numero_limpio
-    with db.conexion() as conn:
+    with db.conexion_admin() as conn:   # preparar y limpiar datos de prueba es tarea del dueño
         conn.execute("INSERT INTO numeros_reportados (numero, reportes, ultimo_reporte, origen) "
                      "VALUES (%s, 9, CURRENT_DATE, 'usuario')", (PRUEBA,))
         conn.commit()

@@ -45,6 +45,7 @@ def _escribir_jsonl(
         {
             "orden":            i + 1,
             "nombre":           h.nombre,
+            "origen":           h.origen,   # agente | codigo (S1: verificación que el agente omitió)
             "parametros":       h.parametros,
             "resultado_resumido": _resumir(h.resultado),
             "latencia_ms":      h.latencia_ms,

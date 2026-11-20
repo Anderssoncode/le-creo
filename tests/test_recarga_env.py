@@ -11,7 +11,7 @@ from app.contrato import ResultadoAgente
 
 _GLOBALES = ("PROVEEDOR", "_BASES", "_KEYS", "_MODELOS", "MAX_ITER", "TIMEOUT_S", "PRESUPUESTO_TOKENS",
              "FORZAR_ERROR", "DATABASE_URL", "TELEGRAM_BOT_TOKEN", "PROVEEDOR_RESPALDO",
-             "PROVEEDOR_TRANSCRIPCION", "_marca_env")
+             "PROVEEDOR_TRANSCRIPCION", "DATABASE_URL_ADMIN", "REPORTES_VIGENCIA_DIAS", "_marca_env")
 
 
 @pytest.fixture

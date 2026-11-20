@@ -17,8 +17,16 @@ from app.config import DATABASE_URL
 
 @contextmanager
 def conexion():
+    """Conexión de la app: usuario lecreo_app, con permisos mínimos (db/02_permisos.sql)."""
     # Si Postgres no responde, falla en segundos en vez de consumir el timeout del análisis.
     with psycopg.connect(DATABASE_URL, connect_timeout=3) as conn:
+        yield conn
+
+
+@contextmanager
+def conexion_admin():
+    """Dueño de la base. Solo para administrar (semillas, limpieza de pruebas), nunca desde la app."""
+    with psycopg.connect(config.DATABASE_URL_ADMIN, connect_timeout=3) as conn:
         yield conn
 
 

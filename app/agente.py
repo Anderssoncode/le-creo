@@ -8,7 +8,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from app import config, herramientas, proveedor
+from app import config, herramientas, proveedor, verificacion
 from app.contrato import ContratoSalida, LlamadaHerramienta, ResultadoAgente
 
 MAX_TEXTO = 2000  # caracteres; los mensajes más largos se truncan y se avisa
@@ -113,6 +113,7 @@ _RESPUESTA_FORZADA_INVALIDA = "Me parece que es una estafa, mejor no pagues nada
 def analizar(texto: str) -> ResultadoAgente:
     """Punto de entrada. Devuelve el contrato (si lo hubo) y las métricas del análisis."""
     config.recargar_si_cambio()   # D17: un cambio de PROVEEDOR en el .env aplica desde este análisis
+    texto = verificacion.sin_invisibles(texto)   # S1 (A10): los caracteres de ancho cero parten palabras y dominios
     truncado = len(texto) > MAX_TEXTO
     texto = texto[:MAX_TEXTO]
 
@@ -204,6 +205,8 @@ def analizar(texto: str) -> ResultadoAgente:
             })
             continue
 
+        # S1: lo verificable (teléfonos y enlaces escritos) no depende de que el modelo obedezca.
+        verificacion.completar(texto, contrato, estado["herramientas"], estado["avisos"])
         return terminar(contrato=contrato, ok=True)
 
     return terminar(error="iteraciones")

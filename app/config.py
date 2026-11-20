@@ -21,7 +21,7 @@ def _valor(clave: str, defecto: str = "") -> str:
 def _aplicar() -> None:
     global PROVEEDOR, _BASES, _KEYS, _MODELOS, MAX_ITER, TIMEOUT_S, PRESUPUESTO_TOKENS
     global FORZAR_ERROR, DATABASE_URL, TELEGRAM_BOT_TOKEN, PROVEEDOR_RESPALDO, PROVEEDOR_TRANSCRIPCION
-    global REPORTES_VIGENCIA_DIAS
+    global REPORTES_VIGENCIA_DIAS, DATABASE_URL_ADMIN
 
     PROVEEDOR = _valor("PROVEEDOR", "google").lower()
     _BASES = {
@@ -37,7 +37,10 @@ def _aplicar() -> None:
     PRESUPUESTO_TOKENS = int(_valor("PRESUPUESTO_TOKENS", "8000"))
     # Solo para pruebas y la demo de D13: "" | 429 | timeout | invalida
     FORZAR_ERROR = _valor("FORZAR_ERROR").lower()
-    DATABASE_URL = _valor("DATABASE_URL", "postgresql://lecreo:lecreo@localhost:5433/lecreo")
+    # S3: la app usa un usuario con permisos mínimos (db/02_permisos.sql). El dueño de la base solo
+    # se usa para administrar: cargar semillas y limpiar datos de prueba.
+    DATABASE_URL = _valor("DATABASE_URL", "postgresql://lecreo_app:lecreo_app@localhost:5433/lecreo")
+    DATABASE_URL_ADMIN = _valor("DATABASE_URL_ADMIN", "postgresql://lecreo:lecreo@localhost:5433/lecreo")
     TELEGRAM_BOT_TOKEN = _valor("TELEGRAM_BOT_TOKEN")
     # Plan B ante un 429 persistente del proveedor principal (sección 11).
     PROVEEDOR_RESPALDO = _valor("PROVEEDOR_RESPALDO", "groq").lower()

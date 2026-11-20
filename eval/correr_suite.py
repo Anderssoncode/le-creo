@@ -55,8 +55,11 @@ def es_acierto(esperado: str, obtenido: str) -> bool:
 
 
 def recuperacion_cumplida(esperada: dict[str, Any], resultado: ResultadoAgente) -> bool:
-    """Alguna llamada a esa herramienta devolvió todos los campos esperados."""
+    """Alguna llamada del agente a esa herramienta devolvió todos los campos esperados.
+    Las que completó el código (S1) no cuentan: la recuperación mide al agente."""
     for h in resultado.herramientas:
+        if h.origen != "agente":
+            continue
         res = h.resultado if isinstance(h.resultado, dict) else {}
         if h.nombre == esperada["herramienta"] and all(res.get(k) == v for k, v in esperada["debe"].items()):
             return True
@@ -77,12 +80,17 @@ def evaluar_caso(caso: dict[str, Any], resultado: ResultadoAgente, semaforo: str
         "tokens_in": resultado.tokens_in,
         "tokens_out": resultado.tokens_out,
         "iteraciones": resultado.iteraciones,
-        "herramientas": [{"nombre": h.nombre, "parametros": h.parametros} for h in resultado.herramientas],
+        "herramientas": [{"nombre": h.nombre, "parametros": h.parametros} for h in resultado.herramientas
+                         if h.origen == "agente"],
+        # S1: lo que el código verificó porque el agente lo omitió (no cuenta como llamada del agente)
+        "verificado_por_codigo": [{"nombre": h.nombre, "parametros": h.parametros} for h in resultado.herramientas
+                                  if h.origen != "agente"],
         "recuperacion": recuperacion,
         # D16: herramientas consultadas que el caso no necesitaba (gastan tokens y tiempo)
         # En casos reales (C5) nadie fijó qué debía consultar: no se cuentan llamadas de más.
         "llamadas_de_mas": [] if "es_estafa" in caso else
-                           [h.nombre for h in resultado.herramientas if h.nombre not in necesarias],
+                           [h.nombre for h in resultado.herramientas
+                            if h.origen == "agente" and h.nombre not in necesarias],
         # Lo que escribió el modelo (los casos son ficticios), para revisar el tono: p. ej. "robes" por "roben"
         "explicacion": resultado.contrato.explicacion if resultado.contrato else None,
         "que_hacer": resultado.contrato.que_hacer if resultado.contrato else None,

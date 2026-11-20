@@ -15,10 +15,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import psycopg
 
-from app.config import DATABASE_URL
+from app.config import DATABASE_URL_ADMIN
 
 SEMILLAS = Path(__file__).parent.parent / "data" / "semillas"
 ESQUEMA = Path(__file__).parent.parent / "db" / "01_esquema.sql"
+PERMISOS = Path(__file__).parent.parent / "db" / "02_permisos.sql"
 
 ENCABEZADOS = {
     "canales_oficiales.csv":  ["entidad", "sector", "canales", "nunca_pide", "fuente_url", "verificado_en"],
@@ -72,6 +73,7 @@ def cargar(conn: psycopg.Connection, datos: dict[str, list[dict[str, str]]]) -> 
         # Docker solo corre el esquema cuando crea el volumen. Correrlo aquí (todo es IF NOT EXISTS)
         # agrega las tablas nuevas, como reportes_usuario, a una base que ya existía.
         conn.execute(ESQUEMA.read_text(encoding="utf-8"))
+        conn.execute(PERMISOS.read_text(encoding="utf-8"))   # S3: usuario lecreo_app con permisos mínimos
         conn.execute("TRUNCATE canales_oficiales, dominios_oficiales, acortadores RESTART IDENTITY")
         conn.execute("DELETE FROM numeros_reportados WHERE origen = 'semilla_ficticia'")
 
@@ -106,7 +108,7 @@ if __name__ == "__main__":
         print(f"ERROR en semillas: {exc}")
         sys.exit(1)
 
-    with psycopg.connect(DATABASE_URL) as conn:
+    with psycopg.connect(DATABASE_URL_ADMIN) as conn:   # crea tablas y permisos: necesita al dueño
         conteo = cargar(conn, datos)
     for nombre, n in conteo.items():
         print(f"  {nombre:<24} {n:>3} filas")

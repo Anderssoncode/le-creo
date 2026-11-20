@@ -119,9 +119,12 @@ def test_flujo_con_herramienta_luego_respuesta():
         resultado = agente.analizar("Me escribió el +573000000001 de Bancolombia")
 
     assert resultado.ok is True
-    assert len(resultado.herramientas) == 1
-    assert resultado.herramientas[0].nombre == "buscar_numero"
+    del_agente = [h for h in resultado.herramientas if h.origen == "agente"]
+    assert [h.nombre for h in del_agente] == ["buscar_numero"]
     assert resultado.iteraciones == 2
+    # S1: el contrato trae un enlace que el agente no revisó; lo revisa el código
+    del_codigo = [h for h in resultado.herramientas if h.origen == "codigo"]
+    assert [(h.nombre, h.parametros["url"]) for h in del_codigo] == [("revisar_enlace", "bancolombia-seguro.co")]
 
 
 def test_presupuesto_agotado():

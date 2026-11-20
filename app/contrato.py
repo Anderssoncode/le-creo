@@ -33,6 +33,7 @@ class LlamadaHerramienta(BaseModel):
     parametros: dict[str, Any]
     resultado: Any
     latencia_ms: int
+    origen: str = "agente"   # agente | codigo (verificación que el código hizo porque el agente la saltó)
 
 
 class ResultadoAgente(BaseModel):

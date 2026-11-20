@@ -1,0 +1,161 @@
+{
+  "fecha": "2026-11-20T14:33:25",
+  "etiqueta": "v11_s1_reales",
+  "proveedor": "google",
+  "modelo": "gemini-3.5-flash-lite",
+  "archivo_casos": "casos_reales.jsonl",
+  "casos": 2,
+  "repeticiones": 2,
+  "descripciones": {
+    "buscar_numero": "Úsala con cada número de teléfono o celular que aparezca escrito en el mensaje, aunque venga con espacios o sin +57 (ej. '300 000 0007'), o si la persona dice desde qué número le escribieron. Consulta cuántas veces lo han reportado. No la uses si el mensaje no trae ningún teléfono, ni con montos de dinero, códigos de verificación, números de guía, de cuenta, de tarjeta o de cédula.",
+    "canal_oficial": "Úsala siempre que el mensaje diga venir de una entidad o hable en su nombre ('Bancolombia le informa', 'NEQUI:', 'Servientrega: su paquete'): un banco, una billetera, una transportadora, la DIAN o la Policía, sea el mensaje sospechoso o no. Devuelve cómo contacta de verdad esa entidad y qué nunca pide. No la uses si la entidad solo aparece como el medio donde piden la plata ('mándame al Nequi'), ni si el mensaje no menciona ninguna entidad.",
+    "revisar_enlace": "Úsala con cada enlace o dirección web que aparezca escrito en el mensaje, aunque no empiece por http o www (ej. 'bit.ly/abc', 'pagos-dian.co/pagar'). Revisa solo el texto: si imita un dominio oficial, si es un acortador o si tiene caracteres engañosos. No abre el enlace ni descarga nada. No la uses si el mensaje no trae ningún enlace escrito (por ejemplo, si solo dice 'haz clic aquí' o 'te envío el link'), ni con correos electrónicos."
+  },
+  "cifras": {
+    "tasa_exito": {
+      "aciertos": 4,
+      "total": 4,
+      "porcentaje": 100.0
+    },
+    "costo_por_tarea": {
+      "promedio_usd": 0.002071,
+      "total_usd": 0.008284,
+      "costo_real_usd": 0.0,
+      "precio_usado": {
+        "entrada_usd_por_millon": 0.3,
+        "salida_usd_por_millon": 2.5,
+        "nota": "Precio estándar (capa paga). La salida incluye los tokens de razonamiento.",
+        "fuente": "https://ai.google.dev/gemini-api/docs/pricing",
+        "consultado": "2026-10-30"
+      }
+    },
+    "latencia": {
+      "mediana_ms": 2509,
+      "min_ms": 1650,
+      "max_ms": 3739
+    },
+    "recuperacion": {
+      "cumplidas": 0,
+      "esperadas": 0,
+      "porcentaje": 0.0
+    },
+    "herramientas": {
+      "llamadas_por_caso": 1.0,
+      "de_mas": 0,
+      "de_mas_porcentaje": 0.0
+    },
+    "tokens_por_caso": 5215,
+    "casos_reales": {
+      "estafas": 0,
+      "estafas_con_alerta": 0,
+      "estafas_en_rojo": 0,
+      "estafas_en_verde": 0,
+      "legitimos": 4,
+      "legitimos_en_verde": 2,
+      "legitimos_en_amarillo": 2,
+      "legitimos_en_rojo": 0
+    }
+  },
+  "registros": [
+    {
+      "id": "r01",
+      "esperado": "legitimo",
+      "obtenido": "verde",
+      "acierto": true,
+      "error": null,
+      "latencia_ms": 2758,
+      "tokens_in": 4991,
+      "tokens_out": 221,
+      "iteraciones": 2,
+      "herramientas": [
+        {
+          "nombre": "revisar_enlace",
+          "parametros": {
+            "url": "go.wu.com/e/AbCdEf123"
+          }
+        }
+      ],
+      "verificado_por_codigo": [],
+      "recuperacion": [],
+      "llamadas_de_mas": [],
+      "explicacion": "Te avisan de un supuesto dinero para que hagas clic en el enlace y caigas en una página falsa.",
+      "que_hacer": "No hagas clic en ningún enlace. Acércate directamente a un punto autorizado si esperas un giro real.",
+      "repeticion": 1
+    },
+    {
+      "id": "r02",
+      "esperado": "legitimo",
+      "obtenido": "amarillo",
+      "acierto": true,
+      "error": null,
+      "latencia_ms": 3739,
+      "tokens_in": 4978,
+      "tokens_out": 297,
+      "iteraciones": 2,
+      "herramientas": [
+        {
+          "nombre": "revisar_enlace",
+          "parametros": {
+            "url": "https://oia.didiglobal.com/dlp/AbCd12"
+          }
+        }
+      ],
+      "verificado_por_codigo": [],
+      "recuperacion": [],
+      "llamadas_de_mas": [],
+      "explicacion": "Te inventan un cobro pequeño para que entres al enlace y pongas los datos de tu tarjeta para robarte.",
+      "que_hacer": "Entra a la aplicación oficial de DiDi para revisar si en verdad tienes algún saldo pendiente.",
+      "repeticion": 1
+    },
+    {
+      "id": "r01",
+      "esperado": "legitimo",
+      "obtenido": "verde",
+      "acierto": true,
+      "error": null,
+      "latencia_ms": 1650,
+      "tokens_in": 4991,
+      "tokens_out": 165,
+      "iteraciones": 2,
+      "herramientas": [
+        {
+          "nombre": "revisar_enlace",
+          "parametros": {
+            "url": "go.wu.com/e/AbCdEf123"
+          }
+        }
+      ],
+      "verificado_por_codigo": [],
+      "recuperacion": [],
+      "llamadas_de_mas": [],
+      "explicacion": "Es un aviso real de Western Union para retirar un giro que te enviaron.",
+      "que_hacer": "Acércate a un punto autorizado con tu documento de identidad y el número MTCN.",
+      "repeticion": 2
+    },
+    {
+      "id": "r02",
+      "esperado": "legitimo",
+      "obtenido": "amarillo",
+      "acierto": true,
+      "error": null,
+      "latencia_ms": 2261,
+      "tokens_in": 4978,
+      "tokens_out": 238,
+      "iteraciones": 2,
+      "herramientas": [
+        {
+          "nombre": "revisar_enlace",
+          "parametros": {
+            "url": "https://oia.didiglobal.com/dlp/AbCd12"
+          }
+        }
+      ],
+      "verificado_por_codigo": [],
+      "recuperacion": [],
+      "llamadas_de_mas": [],
+      "explicacion": "Te piden pagar un valor pequeño por un supuesto viaje cancelado para quedarse con los datos de tu tarjeta o tu dinero.",
+      "que_hacer": "Abre tu aplicación oficial de DiDi para revisar si en verdad tienes algún saldo pendiente por pagar.",
+      "repeticion": 2
+    }
+  ]
+}
