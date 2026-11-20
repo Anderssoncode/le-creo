@@ -18,6 +18,7 @@ import psycopg
 from app.config import DATABASE_URL
 
 SEMILLAS = Path(__file__).parent.parent / "data" / "semillas"
+ESQUEMA = Path(__file__).parent.parent / "db" / "01_esquema.sql"
 
 ENCABEZADOS = {
     "canales_oficiales.csv":  ["entidad", "sector", "canales", "nunca_pide", "fuente_url", "verificado_en"],
@@ -68,6 +69,9 @@ def validar(datos: dict[str, list[dict[str, str]]]) -> None:
 
 def cargar(conn: psycopg.Connection, datos: dict[str, list[dict[str, str]]]) -> dict[str, int]:
     with conn.transaction():
+        # Docker solo corre el esquema cuando crea el volumen. Correrlo aquí (todo es IF NOT EXISTS)
+        # agrega las tablas nuevas, como reportes_usuario, a una base que ya existía.
+        conn.execute(ESQUEMA.read_text(encoding="utf-8"))
         conn.execute("TRUNCATE canales_oficiales, dominios_oficiales, acortadores RESTART IDENTITY")
         conn.execute("DELETE FROM numeros_reportados WHERE origen = 'semilla_ficticia'")
 

@@ -209,3 +209,15 @@ Detalle: `decisiones/publico_y_canal.md`.
 - 230 tests.
 
 **Límite honesto:** la suite sigue siendo casi toda inventada. La cifra que vale para M3 sale de C5, con mensajes reales recogidos por el equipo.
+
+## Pedir datos personales ya cuenta (2026-11-20)
+
+**Qué pasaba:** el contrato aceptaba `pide: datos_personales`, pero `reglas.py` lo descartaba. "Envíenos su cédula y fecha de nacimiento para actualizar su cuenta", sin enlace ni teléfono, salía 🟢.
+
+**Qué cambió:**
+1. **Regla:** `datos_personales` es señal blanda, como `transferencia`. Solo, deja el mensaje en 🟡; con una señal dura sigue 🔴.
+2. **Enlace oficial:** el atajo a 🟢 no aplica si piden datos personales. Un estafador puede pegar el enlace real del banco para dar confianza y pedir la cédula por el chat.
+3. **Texto del amarillo:** "Me hizo dudar: te piden datos personales, como tu cédula o tu dirección".
+4. **Prompt:** se aclaró que presentar el documento en persona (retirar un giro en un punto de pago) no es pedir datos personales, para no mandar a 🟡 avisos reales como c13.
+
+**Pendiente:** correr de nuevo la suite (`eval\correr_suite.py`) con el prompt nuevo, sobre todo c13 y r01.

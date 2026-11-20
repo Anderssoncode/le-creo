@@ -21,7 +21,17 @@ CREATE TABLE IF NOT EXISTS numeros_reportados (
   numero          TEXT PRIMARY KEY,     -- formato +57XXXXXXXXXX
   reportes        INT  NOT NULL DEFAULT 0,
   ultimo_reporte  DATE,
-  origen          TEXT NOT NULL         -- semilla_ficticia | usuario
+  origen          TEXT NOT NULL         -- semilla_ficticia (las filas 'usuario' antiguas ya no cuentan)
+);
+
+-- Reportes aprobados por personas: uno por persona y número (R3). Así 3 reportes son
+-- 3 personas distintas y no 3 clics de la misma. Vencen (REPORTES_VIGENCIA_DIAS, 90 por defecto):
+-- un número reciclado por el operador no queda quemado para siempre.
+CREATE TABLE IF NOT EXISTS reportes_usuario (
+  numero      TEXT NOT NULL,            -- formato +57XXXXXXXXXX
+  reportante  TEXT NOT NULL,            -- huella HMAC de la IP (app/reportantes.py), nunca la IP
+  fecha       DATE NOT NULL DEFAULT CURRENT_DATE,
+  PRIMARY KEY (numero, reportante)
 );
 
 CREATE TABLE IF NOT EXISTS analisis (   -- SIN texto original (decisión 6)

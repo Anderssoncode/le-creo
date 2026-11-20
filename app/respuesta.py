@@ -85,6 +85,8 @@ def _dudas(r: ResultadoAgente, maximo: int = 3) -> list[str]:
     dudas: list[str] = []
     if c and "transferencia" in c.pide:
         dudas.append("te piden pagar o transferir dinero")
+    if c and "datos_personales" in c.pide:
+        dudas.append("te piden datos personales, como tu cédula o tu dirección")
     oficial = _entidad_de_enlace_oficial(r)
     for h in r.herramientas:
         res = h.resultado if isinstance(h.resultado, dict) else {}

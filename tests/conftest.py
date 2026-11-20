@@ -8,6 +8,13 @@ from app.config import DATABASE_URL
 _estado_db: dict[str, str | None] = {}
 
 
+@pytest.fixture(autouse=True)
+def _clave_de_prueba(monkeypatch):
+    """Las pruebas no deben crear el archivo .secreto real del proyecto."""
+    from app import reportantes
+    monkeypatch.setattr(reportantes, "_clave", b"clave-de-prueba")
+
+
 @pytest.fixture
 def requiere_db():
     """Salta el test al instante si Postgres no está arriba, en vez de colgarse reintentando."""

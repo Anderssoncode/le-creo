@@ -172,6 +172,32 @@ def test_mensaje_sin_enlaces_ni_tacticas_sigue_verde():
     assert calcular_semaforo(ContratoSalida(), [])[0] == "verde"
 
 
+# ── DATOS PERSONALES ──────────────────────────────────────────────────────────
+
+def test_pedir_datos_personales_no_puede_salir_verde():
+    """Antes 'pide: datos_personales' se descartaba: 'envíenos su cédula' sin otra señal salía 🟢."""
+    semaforo, senales = calcular_semaforo(ContratoSalida(pide=["datos_personales"]), [])
+    assert semaforo == "amarillo"
+    assert "pide datos personales" in senales
+
+
+def test_entidad_real_pidiendo_datos_por_el_chat_es_amarillo():
+    """'Bancolombia le informa: responda con su cédula…' sin enlace ni teléfono."""
+    contrato = ContratoSalida(entidad_suplantada="Bancolombia", pide=["datos_personales"])
+    assert calcular_semaforo(contrato, [_BANCOLOMBIA])[0] == "amarillo"
+
+
+def test_enlace_oficial_pero_pide_datos_personales_no_es_verde():
+    """Un estafador puede pegar el enlace real para dar confianza y pedir la cédula por el chat."""
+    assert _giro(pide=("clic", "datos_personales")) == "amarillo"
+
+
+def test_datos_personales_con_clave_sigue_rojo():
+    semaforo, senales = calcular_semaforo(ContratoSalida(pide=["datos_personales", "clave"]), [])
+    assert semaforo == "rojo"
+    assert "pide clave" in senales and "pide datos personales" in senales
+
+
 def test_imitacion_debil_da_amarillo_no_rojo():
     contrato = ContratoSalida(enlaces=["exitosa.com/x"])
     h = [_h("revisar_enlace", {"dominio": "exitosa.com", "es_oficial": False, "imita_a": "Éxito",

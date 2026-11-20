@@ -37,6 +37,13 @@ cmd /c "docker info >nul 2>&1"
 if ($LASTEXITCODE -ne 0) { Write-Host "  Docker no responde: demo.ps1 intentará abrir Docker Desktop." }
 else {
     cmd /c "docker compose up -d >nul 2>&1"
+    if ($LASTEXITCODE -ne 0) {
+        # El contenedor se llama siempre lecreo-db. Si ya existe porque se creó desde otra carpeta
+        # (otra copia del proyecto), compose no puede crearlo de nuevo: se reutiliza, con sus datos.
+        cmd /c "docker start lecreo-db >nul 2>&1"
+        if ($LASTEXITCODE -ne 0) { Alto "No pude levantar Postgres. Corre 'docker compose up -d' para ver el error." }
+        Bien "Reutilizo el contenedor lecreo-db que ya existía"
+    }
     $fin = (Get-Date).AddSeconds(60)
     do { Start-Sleep 2; cmd /c "docker exec lecreo-db pg_isready -U lecreo >nul 2>&1" } until ($LASTEXITCODE -eq 0 -or (Get-Date) -gt $fin)
     & .\.venv\Scripts\python.exe scripts\cargar_semillas.py

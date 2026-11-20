@@ -28,7 +28,8 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-docker compose up -d
+# Si lecreo-db ya existe porque se creó desde otra copia del proyecto, compose falla: se reutiliza.
+docker compose up -d || docker start lecreo-db
 for _ in $(seq 1 30); do docker exec lecreo-db pg_isready -U lecreo >/dev/null 2>&1 && break; sleep 2; done
 "$BIN/python" scripts/cargar_semillas.py
 echo "✓ Postgres listo y semillas cargadas"

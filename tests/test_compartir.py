@@ -64,6 +64,48 @@ def _api(base, texto):
     return _post(f"{base}/api/analizar", json.dumps({"texto": texto}).encode(), "application/json")
 
 
+@pytest.mark.parametrize("direccion, cabecera, esperado", [
+    ("127.0.0.1", "181.50.1.1", "181.50.1.1"),          # cloudflared: la IP real viene en la cabecera
+    ("::1", "2800:e2:1:2::a", "2800:e2:1:2::a"),
+    ("127.0.0.1", None, "127.0.0.1"),                    # uso local, sin túnel
+    ("127.0.0.1", "no-es-una-ip", "127.0.0.1"),
+    ("190.24.2.2", "181.50.1.1", "190.24.2.2"),          # desde afuera la cabecera no vale: se podría falsificar
+])
+def test_ip_cliente(direccion, cabecera, esperado):
+    assert compartir.ip_cliente(direccion, cabecera) == esperado
+
+
+def _api_desde(base, ip):
+    req = urllib.request.Request(f"{base}/api/analizar", data=json.dumps({"texto": TEXTO}).encode(),
+                                 headers={"Content-Type": "application/json", "CF-Connecting-IP": ip})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
+
+
+def test_detras_del_tunel_el_limite_es_por_persona(servidor):
+    """Antes todo el túnel compartía un solo cupo de 5 por minuto (todo llegaba desde 127.0.0.1)."""
+    with patch("app.agente.analizar", return_value=ROJO), patch("app.trazas.registrar", return_value=None):
+        primera = [_api_desde(servidor, "181.50.1.1") for _ in range(compartir.MAX_ANALISIS_POR_MINUTO)]
+        sexta = _api_desde(servidor, "181.50.1.1")
+        otra_persona = _api_desde(servidor, "190.24.2.2")
+    assert primera == [200] * compartir.MAX_ANALISIS_POR_MINUTO
+    assert sexta == 429
+    assert otra_persona == 200
+
+
+def test_se_olvidan_los_clientes_inactivos(monkeypatch):
+    compartir._recientes.clear()
+    monkeypatch.setattr(compartir, "MAX_CLIENTES_EN_MEMORIA", 3)
+    for i in range(4):
+        compartir._permitido(f"10.0.0.{i}", ahora=0.0)
+    compartir._permitido("10.0.0.99", ahora=120.0)
+    assert set(compartir._recientes) == {"10.0.0.99"}
+    compartir._recientes.clear()
+
+
 def test_no_se_pueden_levantar_dos_servidores_en_el_mismo_puerto(servidor):
     """En Windows, SO_REUSEADDR permitía un segundo servidor 'encima' sin error."""
     puerto = int(servidor.rsplit(":", 1)[1])

@@ -77,7 +77,7 @@ Usuario pega el mensaje en la web    ─┴→ texto
 
 - **Rechazo:** `fuera_de_alcance = true` → se informa qué hace la app y qué no.
 - **🔴 Rojo** con al menos una señal dura: enlace imita dominio oficial / número con ≥3 reportes / pide clave o código / suplanta entidad y canal no coincide con oficial / 2 o más tácticas fuertes.
-- **🟡 Amarillo:** una sola táctica, acortador sin otra señal, o pide transferencia sin otra señal dura.
+- **🟡 Amarillo:** una sola táctica, acortador sin otra señal, o pide transferencia o datos personales sin otra señal dura.
 - **🟢 Verde:** ninguna señal; si menciona entidad, el canal coincide. Siempre incluye: *"No encontramos señales, pero si dudas, llama tú a la línea oficial."*
 
 ### 4.4 Contrato de salida (pydantic)

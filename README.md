@@ -56,7 +56,7 @@ Está pensada para **personas mayores y su familia**: un familiar instala la app
 | 🔊 **Escuchar** | Lee la respuesta en voz alta, despacio, para quien ve poco. Usa la voz del propio celular, sin costo. |
 | 🔎 **Qué revisé** | Qué consultó el agente y qué encontró: número reportado, enlace que imita a un banco, canal oficial. |
 | 📤 **Entra como sea** | Texto, **pantallazo** o **nota de voz**, compartidos desde WhatsApp o subidos en la página. |
-| 🚩 **Reportar** | Marca un número como estafa **solo con tu clic**. Con 3 reportes, queda en alerta. |
+| 🚩 **Reportar** | Marca un número como estafa **solo con tu clic**. Con reportes de **3 personas distintas**, queda en alerta (los reportes vencen a los 90 días). |
 
 <div align="center">
 <img src="docs/img/android_nota_de_voz.jpg" width="230" alt="Nota de voz compartida desde WhatsApp en un Android real">

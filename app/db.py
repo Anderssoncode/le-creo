@@ -11,6 +11,7 @@ from typing import Any
 
 import psycopg
 
+from app import config
 from app.config import DATABASE_URL
 
 
@@ -21,15 +22,33 @@ def conexion():
         yield conn
 
 
-def buscar_numero(numero: str) -> dict[str, Any]:
-    """Devuelve reportes del número. Si no existe, reportes=0."""
-    with conexion() as conn:
-        fila = conn.execute(
-            "SELECT reportes, ultimo_reporte FROM numeros_reportados WHERE numero = %s",
-            (numero,),
-        ).fetchone()
+UMBRAL_PELIGROSO = 3
 
-    if fila is None:
+
+def _contar_reportes(conn: psycopg.Connection, numero: str) -> tuple[int, Any]:
+    """(reportes, último) = semilla ficticia + personas distintas con un reporte vigente (R3).
+
+    Las filas antiguas de numeros_reportados con origen 'usuario' no se cuentan: venían de
+    clics que una sola persona podía repetir y no hay forma de saber cuántas personas eran."""
+    fila = conn.execute(
+        """SELECT
+             COALESCE((SELECT reportes FROM numeros_reportados
+                       WHERE numero = %(n)s AND origen = 'semilla_ficticia'), 0) + count(*),
+             GREATEST((SELECT ultimo_reporte FROM numeros_reportados
+                       WHERE numero = %(n)s AND origen = 'semilla_ficticia'), max(fecha))
+           FROM reportes_usuario
+           WHERE numero = %(n)s AND fecha > CURRENT_DATE - %(dias)s::int""",
+        {"n": numero, "dias": config.REPORTES_VIGENCIA_DIAS},
+    ).fetchone()
+    return int(fila[0]), fila[1]
+
+
+def buscar_numero(numero: str) -> dict[str, Any]:
+    """Devuelve reportes del número. Si no tiene, reportes=0."""
+    with conexion() as conn:
+        reportes, ultimo = _contar_reportes(conn, numero)
+
+    if reportes == 0:
         return {
             "numero": numero,
             "reportes": 0,
@@ -39,9 +58,9 @@ def buscar_numero(numero: str) -> dict[str, Any]:
         }
     return {
         "numero": numero,
-        "reportes": fila[0],
-        "peligroso": fila[0] >= 3,
-        "ultimo_reporte": str(fila[1]) if fila[1] else None,
+        "reportes": reportes,
+        "peligroso": reportes >= UMBRAL_PELIGROSO,
+        "ultimo_reporte": str(ultimo) if ultimo else None,
     }
 
 
@@ -100,19 +119,24 @@ def canal_oficial(entidad: str) -> dict[str, Any]:
 
 # ── Escrituras aprobadas por la persona (D14) ─────────────────────────────────
 
-def registrar_reporte(numero: str) -> int:
-    """Suma un reporte aprobado al número y devuelve el total."""
+def registrar_reporte(numero: str, reportante: str) -> tuple[int, bool]:
+    """Registra el reporte aprobado de una persona. Devuelve (total, cuenta_como_nuevo).
+
+    Si esa persona ya tenía un reporte vigente del número, no suma: solo renueva la fecha."""
     with conexion() as conn:
-        fila = conn.execute(
-            """INSERT INTO numeros_reportados (numero, reportes, ultimo_reporte, origen)
-               VALUES (%s, 1, CURRENT_DATE, 'usuario')
-               ON CONFLICT (numero) DO UPDATE
-                 SET reportes = numeros_reportados.reportes + 1, ultimo_reporte = CURRENT_DATE
-               RETURNING reportes""",
-            (numero,),
+        ya_estaba = conn.execute(
+            """SELECT 1 FROM reportes_usuario
+               WHERE numero = %s AND reportante = %s AND fecha > CURRENT_DATE - %s::int""",
+            (numero, reportante, config.REPORTES_VIGENCIA_DIAS),
         ).fetchone()
+        conn.execute(
+            """INSERT INTO reportes_usuario (numero, reportante) VALUES (%s, %s)
+               ON CONFLICT (numero, reportante) DO UPDATE SET fecha = CURRENT_DATE""",
+            (numero, reportante),
+        )
         conn.commit()
-    return fila[0]
+        total, _ = _contar_reportes(conn, numero)
+    return total, ya_estaba is None
 
 
 def guardar_feedback(analisis_id: int, usuario_dice: str) -> None:

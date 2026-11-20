@@ -48,6 +48,8 @@ Bien "Docker $docker"
 Paso "Postgres"
 Push-Location $raiz
 docker compose up -d 2>$null | Out-Null
+# Si lecreo-db ya existe porque se creó desde otra copia del proyecto, compose falla: se reutiliza.
+if ($LASTEXITCODE -ne 0) { docker start lecreo-db 2>$null | Out-Null }
 Pop-Location
 $fin = (Get-Date).AddSeconds(40)
 do { Start-Sleep -Seconds 2; $pg = docker exec lecreo-db pg_isready -U lecreo -d lecreo 2>$null } until ($pg -match "accepting" -or (Get-Date) -gt $fin)

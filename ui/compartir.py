@@ -8,6 +8,7 @@ la URL ni se escribe en registros (regla 3): en consola solo aparecen la ruta y 
 """
 from __future__ import annotations
 
+import ipaddress
 import json
 import os
 import re
@@ -23,7 +24,7 @@ from urllib.parse import parse_qs
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app import agente, aprobacion, db, entradas, herramientas, proveedor, reglas, respuesta, trazas
+from app import agente, aprobacion, db, entradas, herramientas, proveedor, reglas, reportantes, respuesta, trazas
 
 NUMERO_CO = re.compile(r"\+57\d{10}")
 
@@ -57,9 +58,34 @@ ESPERA = {"semaforo": "error", "lineas": [
 ]}
 
 _recientes: dict[str, deque[float]] = defaultdict(deque)
+MAX_CLIENTES_EN_MEMORIA = 1000   # por encima, se olvidan los que no han pedido nada en el último minuto
+
+
+def ip_cliente(direccion: str, cf_connecting_ip: str | None) -> str:
+    """IP de quien usa la app. Detrás de cloudflared todas las peticiones llegan desde 127.0.0.1,
+    así que, solo si la conexión es local, se toma la IP real que Cloudflare pone en
+    CF-Connecting-IP. Si la conexión viene de afuera, el encabezado se ignora: cualquiera
+    podría escribirlo para saltarse el límite."""
+    try:
+        local = ipaddress.ip_address(direccion).is_loopback
+    except ValueError:
+        return direccion
+    if local and cf_connecting_ip:
+        try:
+            return str(ipaddress.ip_address(cf_connecting_ip.strip()))
+        except ValueError:
+            pass
+    return direccion
+
+
+def _olvidar_inactivos(ahora: float) -> None:
+    for cliente in [c for c, v in _recientes.items() if not v or ahora - v[-1] > 60]:
+        del _recientes[cliente]
 
 
 def _permitido(cliente: str, ahora: float) -> bool:
+    if len(_recientes) > MAX_CLIENTES_EN_MEMORIA:
+        _olvidar_inactivos(ahora)
     ventana = _recientes[cliente]
     while ventana and ahora - ventana[0] > 60:
         ventana.popleft()
@@ -206,8 +232,11 @@ class Manejador(BaseHTTPRequestHandler):
         campos = parse_qs(cuerpo.decode("utf-8", "replace"))
         return {k: v[0].strip() for k, v in campos.items()}, None
 
+    def _cliente(self) -> str:
+        return ip_cliente(self.client_address[0], self.headers.get("CF-Connecting-IP"))
+
     def _limitado(self) -> bool:
-        if _permitido(self.client_address[0], time.monotonic()):
+        if _permitido(self._cliente(), time.monotonic()):
             return False
         self._json(ESPERA, HTTPStatus.TOO_MANY_REQUESTS)
         return True
@@ -220,15 +249,20 @@ class Manejador(BaseHTTPRequestHandler):
             self._json({"ok": False, "mensaje": "Este reporte no está autorizado o ya se hizo."}, HTTPStatus.FORBIDDEN)
             return
         try:
-            total = db.registrar_reporte(numero)
+            total, nuevo = db.registrar_reporte(numero, reportantes.huella(self._cliente()))
         except Exception as exc:
             print(f"  (no se guardó el reporte: {type(exc).__name__})")
             self._json({"ok": False, "mensaje": "No pude guardar el reporte. Inténtalo más tarde."}, HTTPStatus.SERVICE_UNAVAILABLE)
             return
-        print(f"  reporte aprobado → total {total}")
-        aviso = "Con 3 reportes aprobados queda en alerta para todos." if total < 3 else "Ya está en alerta: otras personas también lo reportaron."
-        self._json({"ok": True, "reportes": total, "peligroso": total >= 3,
-                    "mensaje": f"Gracias. Este número tiene {total} reporte(s). {aviso}"})
+        print(f"  reporte aprobado → total {total}{'' if nuevo else ' (repetido, no suma)'}")
+        peligroso = total >= db.UMBRAL_PELIGROSO
+        if peligroso:
+            aviso = "Ya está en alerta: otras personas también lo reportaron."
+        else:
+            aviso = f"Con reportes de {db.UMBRAL_PELIGROSO} personas distintas queda en alerta para todos."
+        inicio = "Gracias." if nuevo else "Ya lo habías reportado: cada persona cuenta una sola vez."
+        self._json({"ok": True, "reportes": total, "peligroso": peligroso, "nuevo": nuevo,
+                    "mensaje": f"{inicio} Este número tiene {total} reporte(s). {aviso}"})
 
     def _feedback(self, analisis_id: int, usuario_dice: str, permiso: str) -> None:
         if usuario_dice not in ("era_estafa", "no_era_estafa") or not aprobacion.usar(permiso, "feedback", analisis_id):
@@ -263,7 +297,7 @@ class Manejador(BaseHTTPRequestHandler):
             texto = "\n".join(p for p in (campos.get("text", ""), campos.get("url", "")) if p)
             if archivo is not None:
                 # La captura o el audio se analizan aquí mismo y la página llega con el resultado.
-                if _permitido(self.client_address[0], time.monotonic()):
+                if _permitido(self._cliente(), time.monotonic()):
                     datos = analizar_archivo(archivo, texto)
                 else:
                     datos = ESPERA

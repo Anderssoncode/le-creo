@@ -47,6 +47,7 @@ Muchos mensajes reales son solo avisos: una compra con tu tarjeta, el código qu
 - `tacticas` va vacío. Nombrar a la entidad no es "autoridad falsa": solo lo es si además presiona o pide algo.
 - Un mensaje que **te entrega** un código y te dice "no lo compartas" **no pide** un código: no pongas `codigo` en `pide`.
 - Si te recuerda llamar a "las líneas oficiales" sin dar un número, eso no es una táctica.
+- `datos_personales` va en `pide` solo si te piden enviar o escribir tus datos (cédula, fecha de nacimiento, dirección, número de tarjeta, foto del documento) por el chat, en un enlace o en una llamada. Presentar tu documento en persona en una oficina o un punto de pago no es pedir datos personales.
 
 `entidad_suplantada` es la entidad que **dice escribir** el mensaje ("Bancolombia le informa…"). Si una entidad solo aparece como destino del dinero o medio de pago ("mándame al Nequi", "consigna por Daviplata"), no la suplantan: pon `null`.
 

@@ -73,12 +73,15 @@ def calcular_semaforo(
 
     # ── Señales del contrato ──────────────────────────────────────────────────
 
-    # Pide clave o código → dura
+    # Pide clave o código → dura. Pide plata o datos personales → blanda: hay cobros y trámites
+    # reales que los piden, pero sin una prueba de que sea real no puede salir verde.
     for item in contrato.pide:
         if item in {"clave", "codigo"}:
             senales_duras.append(f"pide {item}")
         elif item == "transferencia":
             senales_blandas.append("pide transferencia")
+        elif item == "datos_personales":
+            senales_blandas.append("pide datos personales")
 
     # Dice ser una entidad conocida pero da un enlace o un teléfono que no son los suyos → dura.
     # Es una comparación de datos, no un juicio del modelo: un aviso real del banco que no trae
@@ -123,6 +126,8 @@ def calcular_semaforo(
     # Enlace oficial comprobado: si cada enlace del mensaje es de un dominio de la tabla oficial,
     # no trae teléfonos y no pide nada más que abrir el enlace, las tácticas que el modelo creyó
     # ver (p. ej. "premio inesperado" en un giro real) no bastan: el dato pesa más que el juicio.
+    # Si además pide datos personales no aplica: un estafador puede pegar el enlace real del banco
+    # para dar confianza y pedir la cédula por el chat.
     if (contrato.enlaces and not enlaces_no_oficiales
             and enlaces_oficiales >= len(contrato.enlaces)
             and not contrato.telefonos and set(contrato.pide) <= {"clic"}):

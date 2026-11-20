@@ -21,6 +21,7 @@ def _valor(clave: str, defecto: str = "") -> str:
 def _aplicar() -> None:
     global PROVEEDOR, _BASES, _KEYS, _MODELOS, MAX_ITER, TIMEOUT_S, PRESUPUESTO_TOKENS
     global FORZAR_ERROR, DATABASE_URL, TELEGRAM_BOT_TOKEN, PROVEEDOR_RESPALDO, PROVEEDOR_TRANSCRIPCION
+    global REPORTES_VIGENCIA_DIAS
 
     PROVEEDOR = _valor("PROVEEDOR", "google").lower()
     _BASES = {
@@ -42,6 +43,8 @@ def _aplicar() -> None:
     PROVEEDOR_RESPALDO = _valor("PROVEEDOR_RESPALDO", "groq").lower()
     # Notas de voz (D12): la transcripción va por su propio proveedor (Whisper en Groq).
     PROVEEDOR_TRANSCRIPCION = _valor("PROVEEDOR_TRANSCRIPCION", "groq").lower()
+    # R3: un reporte de una persona deja de contar pasados estos días.
+    REPORTES_VIGENCIA_DIAS = int(_valor("REPORTES_VIGENCIA_DIAS", "90"))
 
 
 def recargar_si_cambio(ruta: Path | None = None) -> bool:

@@ -158,3 +158,15 @@ def test_amarillo_con_un_enlace_no_oficial_explica_la_duda_sin_acusar():
     web = respuesta.para_web(ResultadoAgente(contrato=c, herramientas=h), "amarillo")
     texto = " ".join(web["lineas"])
     assert "inventan" not in texto and "didi-pagos.xyz" in texto and "No tengo pruebas" in texto
+
+
+def test_amarillo_por_datos_personales_dice_que_los_piden():
+    """El amarillo explica la duda con datos: aquí, que piden la cédula."""
+    from app.contrato import ContratoSalida
+    from app.agente import ResultadoAgente
+    from app import reglas, respuesta
+    r = ResultadoAgente(ok=True, contrato=ContratoSalida(pide=["datos_personales"], explicacion="Te roban."))
+    semaforo, _ = reglas.calcular_semaforo(r.contrato, r.herramientas)
+    texto = " ".join(respuesta.para_web(r, semaforo)["lineas"])
+    assert semaforo == "amarillo"
+    assert "te piden datos personales" in texto and "Te roban" not in texto

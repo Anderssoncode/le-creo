@@ -239,7 +239,7 @@ function bloqueReporte(analisisId, { numero, permiso }) {
   };
   const confirmar = () => {
     bloque.replaceChildren(
-      parrafo(`Vas a sumar un reporte al ${legible(numero)}. Con 3 reportes queda en alerta para todos. ¿Seguro?`),
+      parrafo(`Vas a sumar un reporte al ${legible(numero)}. Si 3 personas distintas lo reportan, queda en alerta para todos. ¿Seguro?`),
       Object.assign(document.createElement("div"), { className: "fila-botones" }),
     );
     bloque.lastChild.append(
