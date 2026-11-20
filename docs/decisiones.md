@@ -124,6 +124,33 @@ Modelo: `gemini-3.5-flash-lite`. Archivos: `eval/resultados/2026-10-30_0440_goog
 3. **12 casos son pocos:** un solo fallo baja 8 puntos.
 4. **¿Y con un modelo más barato o distinto?** Con Groq (`gpt-oss-120b`) se probaron c01–c05: 5/5. La suite completa con Groq queda pendiente por su cupo de 8.000 tokens por minuto.
 
+### Cifras finales contra la línea base (Momento 3)
+
+Mismo método, mismo modelo (`gemini-3.5-flash-lite`) y mismo script. La suite creció de 12 a 14 casos: c13 (giro real de Western Union) y c14 (cobro real de DiDi) salieron de fallos encontrados con mensajes reales.
+
+| Cifra | Línea base · sem. 10 · 2026-10-30 (1×12) | Final · **2026-11-20 14:29** (2×14, v11) | Cambio | Qué cambió y por qué |
+|---|---|---|---|---|
+| **1. Tasa de éxito** | 12/12 (100 %) | **28/28 (100 %)** | = | Se mantuvo, con 2 casos más y más difíciles (dos legítimos con enlace que antes salían 🟡 o 🟢 por error). Ver los fallos abajo |
+| **2. Costo por análisis** | US$ 0,001747 equiv. | **US$ 0,001905 equiv.** (real US$ 0) | +9 % | El prompt creció: reglas para que avisar no sea acusar, para datos personales y para cobros. Pasó de 4.114 tokens por caso (3.881 de entrada y 233 de salida) a 4.715. Sigue siendo gratis con la capa gratuita |
+| **3. Latencia** | mediana 3.150 ms | **mediana 2.021 ms** (mín. 794 · máx. 3.249) | −36 % | En parte, las descripciones v2 de las herramientas y el prompt v5 (D16) quitaron las llamadas de más (0 %). En parte, es la velocidad de Google ese día: en la corrida v10, una hora antes, la mediana fue 7,4 s. Verificar en código lo que el agente omite cuesta milisegundos, porque es una consulta a la base, no al modelo |
+| **4. Recuperación** | 12/12 | **30/30 (100 %)** | = | Mide **solo al agente**: lo que completa el código (`origen: codigo`) no cuenta, para no inflar la cifra |
+| Casos reales (C5) | — | **4/4** (r01 🟢 ×2, r02 🟡 ×2, ningún legítimo en 🔴) | nuevo | Solo 2 mensajes reales: no es una cifra que generalice |
+
+Archivos: `eval/resultados/2026-10-30_0440_google.json` (línea base), `…/2026-11-20_1429_google_v11_s1.json` y `…/2026-11-20_1433_google_v11_s1_reales.json`.
+
+**Los fallos del camino, con su traza (no los escondemos):**
+
+| Fecha | Corrida | Qué falló | Por qué (traza) | Qué hicimos |
+|---|---|---|---|---|
+| 2026-10-30 | línea base | Los 3 legítimos (c07–c09) salían 🔴 | "Dice ser la entidad" era señal dura aunque el mensaje no trajera contactos | La suplantación solo es dura si el enlace o el teléfono no son los oficiales |
+| 2026-11-07 | v6 | Giro real de Western Union (c13) en 🟡 | `go.wu.com` no estaba en la tabla y el modelo vio "premio inesperado" | WU a la tabla oficial; con todos los enlaces oficiales, el dato pesa más que las tácticas |
+| 2026-11-20 | v9 | c14 (DiDi) 🟢 en 1 de 3 | El modelo no puso `transferencia` en `pide` ("pagar aquí" le pareció un clic) | Línea en el prompt: un cobro siempre es `transferencia`. Después, 6/6 |
+| 2026-11-20 | v10 | c09 🟡 en 1 de 3 | El agente respondió en 1,1 s **sin revisar el enlace** (`herramientas: []`) | `app/verificacion.py`: el código revisa lo que el agente salta. En v11, c09 2/2 |
+| 2026-11-20 | v9 y v10 | 7 errores en total | 500 y cortes a 20 s de Google: la mediana subió a 7,4 s ese rato | Es el proveedor, no la lógica. Con Groq configurado, el respaldo cubre los 429. Los 500 no se reintentan (decisión: no esperar más de 20 s) |
+| 2026-11-20 | ataques S1 | A04: una estafa con el número del atacante salió 🟢 | El modelo obedeció y omitió el teléfono (traza #127) | Verificación por código y "teléfono sin verificar no es verde". Detalle en `docs/seguridad.md` |
+
+**Límites de las cifras finales:** siguen siendo casi todas sobre casos inventados, y la suite se usó para corregir (no es una medición a ciegas). La cifra que generaliza es la de casos reales, y hoy son 2 de los 30 que pide C5.
+
 ## 8. Trazas
 
 Cada análisis deja una línea en `trazas/AAAA-MM-DD.jsonl` y una fila en la tabla `analisis` con: herramientas en orden, parámetros, resultados, tokens, latencia, proveedor, modelo, avisos y señales del semáforo. **Nunca el texto del mensaje** (regla de privacidad).

@@ -236,6 +236,9 @@ run.ps1 · run.sh  arranque en un comando
 | [`docs/guion_presentacion.md`](docs/guion_presentacion.md) | Guion de la presentación por persona |
 | [`docs/guion_demo.md`](docs/guion_demo.md) | Guion de la demo y preguntas probables con respuesta |
 | [`docs/decisiones/`](docs/decisiones/) | Detalle: público y canal, fallos (semana 9), cifras (semana 10) |
+| [`docs/seguridad.md`](docs/seguridad.md) | **Momento 3:** modelo de amenazas, tríada letal, 14 ataques contra el agente con trazas y hardening con antes y después |
+| [`docs/gobernanza.md`](docs/gobernanza.md) | **Momento 3:** quién decide, dónde se exige la supervisión humana, qué datos se guardan, qué hacemos ante un daño y cómo se audita |
+| [`docs/respuesta_auditoria.md`](docs/respuesta_auditoria.md) | **Momento 3:** respuesta a la auditoría cruzada (y autoauditoría) |
 | [`docs/guias/c8_prueba_adulto_mayor.md`](docs/guias/c8_prueba_adulto_mayor.md) | Guía para la prueba con un adulto mayor |
 
 ## 🧪 Pruebas
