@@ -22,6 +22,7 @@
 | → o espacio | Avanza |
 | ← | Retrocede |
 | **N** | Muestra las notas del que habla: lo que hay que decir en cada diapositiva |
+| **M** | Cambia entre la versión de 12 y la de 6 minutos |
 | **T** | Cronómetro, que empieza al pasar de la portada |
 | **F** | Pantalla completa |
 | **Fin** | Apéndice "Dónde está cada cosa", para las preguntas |
@@ -29,14 +30,37 @@
 
 ## Tiempo
 
-La página del curso **no publica un tiempo exacto** para la final. En el Momento 2 fueron 6 minutos. Preparamos dos versiones:
+La página del curso **no publica un tiempo exacto** para la final. En el Momento 2 fueron 6 minutos. Hay **dos versiones en el mismo archivo**, con el mismo diseño. Cada una trae sus propias notas (tecla N):
 
-| Versión | Duración | Qué se hace |
+| Versión | Cómo se abre | Diapositivas |
 |---|---|---|
-| **Completa** | unos 12 min | Todas las diapositivas, como están en las notas (N) |
-| **Corta** | unos 8 min | Se salta la 6 (spec): Angela dice una frase al final de la 5 ("cambiamos Telegram por Compartir desde WhatsApp porque costaba y porque un mayor no abre otra página"). La 10 (hardening) se dice en 20 s. La demo dura 60 s |
+| **12 min** (completa) | `presentacion_final.html` | Las 15, más el apéndice |
+| **6 min** (unos 5:40) | `presentacion_final.html?modo=6`, o la tecla **M** en cualquier momento | 10, más el apéndice |
 
-**Pregunten al empezar cuánto tiempo hay** y decidan entre los tres con una seña.
+**La tecla M cambia de versión sin perder la diapositiva en la que van.** Si el profe recorta el tiempo a mitad de camino, presionen M y sigan.
+
+**Reparto de la versión de 6 minutos** (unos 2 minutos por persona):
+
+| Quién | Diapositivas | Tiempo |
+|---|---|---|
+| Angela | Portada (10 s) · El mensaje (25 s) · **Demo con un voluntario (60 s)** · La IA lee, el código decide (25 s) | 2:00 |
+| Anderson | Tríada (25 s) · **A04 con sus trazas (50 s)** · La línea de la supervisión humana (40 s) | 1:55 |
+| Diego | Las 4 cifras (45 s) · Los fallos y lo que falta (35 s) · Cierre (25 s) | 1:45 |
+
+**Qué se salta, y dónde queda dicho:**
+- **Spec contra producto (diapositiva 6):** el cambio de Telegram a WhatsApp lo dice Angela en la diapositiva 5.
+- **Tres toques (3):** se ve en la demo.
+- **Los 14 ataques (8):** Anderson los resume en una frase en A04.
+- **Hardening (10):** Anderson nombra los permisos mínimos en gobernanza.
+- **Lo que falta (14):** Diego lo dice en la diapositiva de los fallos.
+
+**Pregunten al empezar cuánto tiempo hay** y escojan la versión.
+
+**Para abrir la de 6 minutos en Chrome:** el atajo es abrir la de 12 y presionar **M**. También pueden escribir la ruta completa en la barra de direcciones y agregar `?modo=6` al final:
+
+```
+file:///C:/Users/juand/Electiva/le-creo-anderson/docs/presentacion_final.html?modo=6
+```
 
 ## Antes de entrar (30 min antes)
 
