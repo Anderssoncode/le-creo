@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="sin-js">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,6 +26,10 @@ html,body{height:100%;background:#0c0918;overflow:hidden;font-family:var(--cuerp
 .slide{position:absolute;inset:0;padding:78px 96px 86px;display:flex;flex-direction:column;background:var(--papel);
   opacity:0;visibility:hidden;transition:opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1);transform:translateY(14px);overflow:hidden}
 .slide.activa{opacity:1;visibility:visible;transform:none}
+/* Sin JavaScript (vista previa estática): se ven todas, una debajo de otra */
+html.sin-js,html.sin-js body{overflow:auto;height:auto}
+html.sin-js #escenario{position:relative;left:auto;top:auto;transform:none;width:1600px;height:auto}
+html.sin-js .slide{position:relative;opacity:1;visibility:visible;transform:none;height:900px;margin-bottom:24px}
 .slide.noche{background:var(--noche);color:#f2eefc}
 .slide.rojo{background:var(--rojo);color:#fff}
 .slide.amarillo{background:var(--amarillo);color:var(--sobre-amarillo)}
@@ -495,6 +499,7 @@ pre .marca-l{background:rgba(245,183,0,.18);display:inline-block;width:100%;marg
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (() => {
+  document.documentElement.classList.remove("sin-js");
   const escenario = document.getElementById("escenario");
   const slides = [...document.querySelectorAll(".slide")];
   const barra = document.getElementById("barra");
