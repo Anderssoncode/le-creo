@@ -1,0 +1,165 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║          ¿LE CREO?  ·  PRUEBAS Y TRAZAS PARA LA SUSTENTACIÓN         ║
+║          Para cuando el profe diga "muéstrenme…"                     ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+  Todo se corre en una terminal (PowerShell) desde la carpeta del repo:
+
+      cd C:\Users\juand\Electiva\le-creo-anderson
+
+  Cada comando se probó el 21 de noviembre de 2026. Al lado está lo
+  que debe salir y cuánto tarda.
+
+
+══════════════════════════════════════════════════════════════════════
+  1.  "MUÉSTRENME LA TRAZA DE LA DEMO"                    (Diego · 1 s)
+══════════════════════════════════════════════════════════════════════
+
+  El último análisis, por ejemplo el que acaba de hacer el voluntario:
+
+      .venv\Scripts\python.exe scripts\ver_traza.py ultima
+
+  Uno en particular (el de Doña Carmen de la prueba de hoy fue el #669):
+
+      .venv\Scripts\python.exe scripts\ver_traza.py 669
+
+  Debe salir:
+      Análisis #669 · 🔴 ROJO · gemini-3.5-flash-lite · ~2 s
+      QUÉ CONSULTÓ
+        1. buscar_numero("300 000 0042") → reportes=0     ← el agente
+        2. canal_oficial("Nequi") → encontrada=True        ← el agente
+      SEÑALES QUE TOMÓ reglas.py
+        · dice ser Nequi pero da un contacto que no es el oficial
+        · 2 o más tácticas fuertes: autoridad_falsa, urgencia
+        · teléfono sin verificar: 300 000 0042
+
+  Qué decir: "El color no lo puso la IA: lo decidió reglas.py con
+  estas señales. Y fíjense que el texto del mensaje no está: no lo
+  guardamos."
+
+  OTRA OPCIÓN, EN VIVO: Streamlit (localhost:8501). Se pega un mensaje
+  y debajo del resultado sale cada herramienta con lo que devolvió.
+
+
+══════════════════════════════════════════════════════════════════════
+  2.  "MUÉSTRENME EL ATAQUE Y QUÉ PASÓ"                 (Anderson · 1 s)
+══════════════════════════════════════════════════════════════════════
+
+      .venv\Scripts\python.exe scripts\ver_traza.py A04
+
+  Muestra las tres etapas, con lo que vio la persona en cada una:
+      #127  🟢  antes: el agente no anotó el teléfono
+      #171  🟢  arreglo 1: el código lo consultó, pero seguía verde
+      #211  🔴  arreglo 2: un teléfono sin verificar no puede ser verde
+
+  Y la prueba automática que lo cuida para siempre:
+
+      .venv\Scripts\python.exe -m pytest tests\test_verificacion.py -k a04 -v
+
+  Debe salir: 3 passed
+      test_a04_antes_salia_verde_porque_el_modelo_omitio_el_telefono
+      test_a04_ahora_el_codigo_agrega_y_consulta_el_telefono_y_sale_rojo
+      test_a04_aunque_el_modelo_tampoco_diga_que_suplantan_a_nequi_no_sale_verde
+
+  OJO, por si lo notan: en #211 la segunda línea todavía dice "es un
+  aviso que te pide estar tranquilo". Es la explicación que escribe el
+  modelo, y ya lo tenemos ASUMIDO: el color, la orden y los teléfonos
+  son del código. La explicación es lo único que sigue siendo del
+  modelo (docs/respuesta_auditoria.md).
+
+  Las otras 13 inyecciones: docs/seguridad.md §3, con su traza cada una.
+
+
+══════════════════════════════════════════════════════════════════════
+  3.  "MUÉSTRENME LA SUPERVISIÓN HUMANA"                (Anderson · 3 s)
+══════════════════════════════════════════════════════════════════════
+
+  La línea: ui/compartir.py, línea 248. Sin permiso firmado → 403.
+
+  Las pruebas:
+
+      .venv\Scripts\python.exe -m pytest -v -k "la_ia_no_puede_reportar or sin_permiso_no_se_reporta or con_clic_se_reporta_una_sola_vez or una_persona_sola_no_quema"
+
+  Debe salir: 4 passed
+      test_la_ia_no_puede_reportar_por_su_cuenta    → la IA no puede escribir
+      test_sin_permiso_no_se_reporta                → sin clic: 403, nada se escribe
+      test_con_clic_se_reporta_una_sola_vez         → el permiso sirve una vez
+      test_una_persona_sola_no_quema_un_numero      → hacen falta 3 personas
+
+
+══════════════════════════════════════════════════════════════════════
+  4.  "MUÉSTRENME LOS PERMISOS MÍNIMOS"                 (Anderson · 2 s)
+══════════════════════════════════════════════════════════════════════
+
+  EN VIVO, el más convincente: intentar borrar como la app.
+
+      docker exec lecreo-db psql -U lecreo_app -d lecreo -c "DELETE FROM numeros_reportados WHERE false"
+
+  Debe salir:
+      ERROR:  permission denied for table numeros_reportados
+
+  (El WHERE false hace que, aunque pudiera, no borraría nada. Es
+  seguro correrlo.)
+
+  Y leer sí puede, porque es lo único que necesita:
+
+      docker exec lecreo-db psql -U lecreo_app -d lecreo -c "SELECT count(*) FROM canales_oficiales"
+
+  Debe salir: 45
+
+  Las pruebas de antes y después, con 9 operaciones destructivas:
+
+      .venv\Scripts\python.exe -m pytest tests\test_permisos.py -v
+
+  Debe salir: 26 passed
+      test_antes_el_duenio_podia[DELETE ...]   → como dueño, pasa
+      test_ahora_la_app_no_puede[DELETE ...]   → como app, falla
+      (lo mismo con TRUNCATE, UPDATE, DROP, CREATE, INSERT…)
+
+
+══════════════════════════════════════════════════════════════════════
+  5.  "¿Y LAS DEMÁS PRUEBAS?"                              (Diego · 30 s)
+══════════════════════════════════════════════════════════════════════
+
+      .venv\Scripts\python.exe -m pytest -q
+
+  Debe salir: 310 passed (unos 27 s)
+  Es útil correrla mientras otro habla.
+
+
+══════════════════════════════════════════════════════════════════════
+  6.  "¿CÓMO ESTÁN SUS CIFRAS CONTRA LA SEMANA 10?"         (Diego)
+══════════════════════════════════════════════════════════════════════
+
+  No se corre en vivo: tarda varios minutos y gasta cupo de Google.
+  Se muestran los resultados guardados:
+
+      línea base:  eval\resultados\2026-10-30_0440_google.json
+      final:       eval\resultados\2026-11-20_1429_google_v11_s1.json
+      la tabla:    docs\decisiones.md §7
+
+  Si insisten en verlo correr, solo los mensajes reales (2 casos,
+  ~10 s):
+
+      .venv\Scripts\python.exe eval\correr_suite.py 3 --casos eval\casos_reales.jsonl --etiqueta sustentacion
+
+
+══════════════════════════════════════════════════════════════════════
+  SI ALGO FALLA EN VIVO
+══════════════════════════════════════════════════════════════════════
+
+  · "connection refused" o la base no responde:
+        Docker Desktop no está abierto. Ábranlo, esperen a que diga
+        running y corran:  docker start lecreo-db
+  · La app no abre en el celular:
+        El túnel se cerró. Vuelvan a correrlo, copien el link nuevo y
+        péguenlo en la diapositiva del QR.
+  · El modelo tarda o da error:
+        Es la capa gratuita de Google. Muestren la traza de un análisis
+        anterior (ver_traza.py ultima) y digan: "el error está
+        manejado: la app avisa y no inventa un resultado" (D13).
+
+  Regla de oro: un fallo explicado con su traza suma; uno escondido
+  resta doble.
