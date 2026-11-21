@@ -257,7 +257,7 @@ pre .marca-l{background:rgba(245,183,0,.18);display:inline-block;width:100%;marg
       <div class="etiqueta">Demo en vivo</div>
       <h2 style="font-size:84px">Pruébalo tú, ahora.</h2>
       <p class="lead">Un voluntario del público escanea, pega un mensaje sospechoso que tenga en su celular y lo revisa. Sin que le expliquemos nada.</p>
-      <div class="campo"><input id="url-app" type="url" placeholder="Pega aquí la URL del túnel y presiona Enter" aria-label="URL de la app para el código QR"></div>
+      <div class="campo"><input id="url-app" type="url" placeholder="Pega aquí el link del túnel (https://…trycloudflare.com) y Enter" aria-label="URL de la app para el código QR"></div>
       <div id="url-ver" class="url-grande"></div>
     </div>
     <div class="qr-caja"><div id="qr" aria-label="Código QR de la app"></div></div>
@@ -576,10 +576,17 @@ pre .marca-l{background:rgba(245,183,0,.18);display:inline-block;width:100%;marg
     const caja = document.getElementById("qr");
     caja.textContent = "";
     if (!url) return;
+    // Aquí va el link del túnel, no el mensaje: el mensaje lo escribe el voluntario en su celular.
+    if (!/^https?:\/\/\S+$/.test(url)) {
+      ver.textContent = "⚠ Eso no es un link. Pega la URL del túnel (empieza por https://). El mensaje lo escribe el voluntario en su celular.";
+      return;
+    }
     ver.textContent = url;
     try { localStorage.setItem("lecreo-url-demo", url); } catch (_) {}
-    if (window.QRCode) new QRCode(caja, { text: url, width: 328, height: 328, colorDark: "#15102a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
-    else caja.textContent = "Sin internet para el QR: lee la URL en voz alta";
+    try {
+      if (!window.QRCode) throw new Error("sin librería");
+      new QRCode(caja, { text: url, width: 328, height: 328, colorDark: "#15102a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+    } catch (_) { caja.textContent = "Sin internet para el QR: lean la URL en voz alta"; }
   }
   campo.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); pintarQR(campo.value.trim()); campo.blur(); } });
   const guardada = new URLSearchParams(location.search).get("app") || (() => { try { return localStorage.getItem("lecreo-url-demo"); } catch (_) { return null; } })();
